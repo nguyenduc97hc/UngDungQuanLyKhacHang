@@ -1,21 +1,29 @@
 package com.codegym.controller;
 
 import com.codegym.model.Customer;
+import com.codegym.model.Province;
 import com.codegym.service.CustomerService;
+import com.codegym.service.ProvinceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("/customer")
 public class CustomerController {
     @Autowired
     private CustomerService customerService;
+    @Autowired
+    private ProvinceService provinceService;
+
+    @ModelAttribute("provinces")
+    public Iterable<Province> provinceList(){
+        return provinceService.findAll();
+    }
+
     @GetMapping("/create")
     public ModelAndView createForm(){
         ModelAndView modelAndView = new ModelAndView("/customer/create");
@@ -27,11 +35,12 @@ public class CustomerController {
         customerService.save(customer);
         ModelAndView modelAndView = new ModelAndView("/customer/create");
         modelAndView.addObject("customer",new Customer());
+
         return modelAndView;
     }
     @GetMapping("/list")
     public  ModelAndView list(){
-        List<Customer> customers = customerService.findAll();
+        Iterable<Customer> customers = customerService.findAll();
         ModelAndView modelAndView = new ModelAndView("/customer/list");
         modelAndView.addObject("customerList",customers);
         return modelAndView;
@@ -58,8 +67,9 @@ public class CustomerController {
         return modelAndView;
     }
     @PostMapping("/delete")
-    public String removeCustomer(Customer customer){
+    public ModelAndView removeCustomer(@ModelAttribute Customer customer){
         customerService.delete(customer.getId());
-        return "redirect:list";
+        ModelAndView modelAndView = new ModelAndView("/customer/delete");
+        return modelAndView;
     }
 }

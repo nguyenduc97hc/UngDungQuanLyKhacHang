@@ -1,9 +1,9 @@
 package com.codegym;
 
-import com.codegym.repository.Customer.CustomerRepositoryImpl;
-import com.codegym.repository.CustomerRepository;
 import com.codegym.service.CustomerService;
-import com.codegym.service.CustomerServiceImpl;
+import com.codegym.service.Impl.CustomerServiceImpl;
+import com.codegym.service.Impl.ProvinceServiceImpl;
+import com.codegym.service.ProvinceService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -11,6 +11,8 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -35,25 +37,29 @@ import java.util.Properties;
 @EnableWebMvc
 @EnableTransactionManagement
 @ComponentScan("com.codegym")
+@EnableJpaRepositories("com.codegym.repository")
 public class ApplicationConfig extends WebMvcConfigurerAdapter implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addFormatter(new ProvinceFormatter(applicationContext.getBean(ProvinceService.class)));
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
-    @Bean
-    public CustomerRepository customerRepository(){
-        return new CustomerRepositoryImpl();
-    }
 
     @Bean
     public CustomerService customerService(){
         return new CustomerServiceImpl();
     }
 
+    @Bean
+    public ProvinceService provinceService(){return  new ProvinceServiceImpl();
+    }
 
     //Thymeleaf Configuration
     @Bean
@@ -62,6 +68,7 @@ public class ApplicationConfig extends WebMvcConfigurerAdapter implements Applic
         templateResolver.setApplicationContext(applicationContext);
         templateResolver.setPrefix("/WEB-INF/views");
         templateResolver.setSuffix(".html");
+        templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setTemplateMode(TemplateMode.HTML);
         return templateResolver;
     }
@@ -77,6 +84,7 @@ public class ApplicationConfig extends WebMvcConfigurerAdapter implements Applic
     public ThymeleafViewResolver viewResolver(){
         ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
         viewResolver.setTemplateEngine(templateEngine());
+        viewResolver.setCharacterEncoding("UTF-8");
         return viewResolver;
     }
 
@@ -103,7 +111,7 @@ public class ApplicationConfig extends WebMvcConfigurerAdapter implements Applic
     public DataSource dataSource(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/cms");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/cms?useUnicode=yes&characterEncoding=utf-8");
         dataSource.setUsername( "root" );
         dataSource.setPassword( "123456" );
         return dataSource;
